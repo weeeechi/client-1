@@ -108,43 +108,25 @@
     selector: '.glightbox'
   });
 
-  // Function to stop all videos (only when needed, like on slide change)
-function stopAllVideos() {
-  const videos = document.querySelectorAll('video');
-  videos.forEach(function(video) {
-    video.pause();   // Pause the video
-    video.currentTime = 0;  // Reset video to start (optional, if you want reset behavior)
+  // Function to stop all iframes (by removing src to stop loading)
+function stopAllIframes() {
+  const iframes = document.querySelectorAll('iframe');
+  iframes.forEach(function(iframe) {
+    iframe.src = ''; // Remove the iframe source to stop it
   });
 }
 
-// Function to keep playing the video on the new slide
-function playVideoOnActiveSlide(swiper) {
+// Function to play the iframe on the active slide
+function playIframeOnActiveSlide(swiper) {
   const nextSlide = swiper.slides[swiper.activeIndex];
-  const nextVideo = nextSlide.querySelector('video');
-  if (nextVideo && nextVideo.paused) {
-    nextVideo.play();  // Play the video in the active slide if paused
+  const nextIframe = nextSlide.querySelector('iframe');
+  if (nextIframe && !nextIframe.src) {
+    // Re-add the iframe src to "play" the video
+    nextIframe.src = nextIframe.getAttribute('data-src');
   }
 }
 
-// Function to stop all videos (only when needed, like on slide change)
-function stopAllVideos() {
-  const videos = document.querySelectorAll('video');
-  videos.forEach(function(video) {
-    video.pause();   // Pause the video
-    video.currentTime = 0;  // Reset video to start (optional, if you want reset behavior)
-  });
-}
-
-// Function to play the video on the active slide
-function playVideoOnActiveSlide(swiper) {
-  const nextSlide = swiper.slides[swiper.activeIndex];
-  const nextVideo = nextSlide.querySelector('video');
-  if (nextVideo && nextVideo.paused) {
-    nextVideo.play();  // Play the video in the active slide if paused
-  }
-}
-
-// Init swiper sliders
+// Initialize Swiper with iframe handling
 function initSwiper() {
   document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
     let config = JSON.parse(
@@ -156,53 +138,24 @@ function initSwiper() {
     } else {
       let swiper = new Swiper(swiperElement, config);
 
-      // When the slide changes, pause the video on the previous slide and play the video on the new slide
+      // When the slide changes, stop the iframe on the previous slide and play the iframe on the new slide
       swiper.on('slideChange', function() {
-        // Get the video on the previous slide and pause it
+        // Get the iframe on the previous slide and stop it
         const prevSlide = swiper.slides[swiper.previousIndex];
-        const prevVideo = prevSlide.querySelector('video');
-        if (prevVideo && !prevVideo.paused) {
-          prevVideo.pause(); // Pause the video on the previous slide
+        const prevIframe = prevSlide.querySelector('iframe');
+        if (prevIframe) {
+          prevIframe.src = ''; // Remove the src to stop it
         }
 
-        // Play the video on the new active slide
-        playVideoOnActiveSlide(swiper);
+        // Play the iframe on the new active slide
+        playIframeOnActiveSlide(swiper);
       });
 
-      // Automatically stop all videos on initialization
-      stopAllVideos();
+      // Automatically stop all iframes on initialization
+      stopAllIframes();
 
-      // Ensure the video on the active slide starts playing when page loads (in case of page refresh)
-      playVideoOnActiveSlide(swiper);
+      // Ensure the iframe on the active slide starts when the page loads
+      playIframeOnActiveSlide(swiper);
     }
   });
 }
-
-// Ensure videos continue playing without interruption during resize
-window.addEventListener("resize", function() {
-  // Get the active video on the active slide and check if it's playing
-  const activeSlide = document.querySelector(".swiper-slide-active");
-  const video = activeSlide ? activeSlide.querySelector("video") : null;
-
-  if (video && !video.paused) {
-    // If the video is playing, do nothing (allow the video to continue playing smoothly)
-    return;
-  }
-});
-
-// Prevent page layout reset that could affect video during resize
-window.addEventListener("load", function() {
-  // Initialize the swiper on load
-  initSwiper();
-
-  // On load, ensure the video on the active slide starts playing without interruption
-  const activeSlide = document.querySelector(".swiper-slide-active");
-  const video = activeSlide ? activeSlide.querySelector("video") : null;
-  if (video && video.paused) {
-    video.play();
-  }
-});
-
-
-
-})();
